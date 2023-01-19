@@ -1,0 +1,35 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AnalysisTemplate
+metadata:
+  name: pod-restarts
+spec:
+  args:
+    - name: namespace
+    - name: stable-hash
+    - name: canary-hash
+    - name: prometheus-port
+    - name: initial-delay
+      value: "1m"
+    - name: count
+      value: "10"
+    - name: interval
+      value: "60s"
+    - name: failure-limit
+      value: "1"
+    - name: inconclusive-limit
+      value: "1"
+  metrics:
+    - name: pod-restarts
+      successCondition: result[0] == 0
+      initialDelay: "{{args.initial-delay}}"
+      interval: "{{args.interval}}"
+      count: "{{args.count}}"
+      failureLimit: "{{args.failure-limit}}"
+      inconclusiveLimit: "{{args.inconclusive-limit}}"
+      provider:
+        prometheus:
+          address: "http://prometheus.metrics-ns.svc.cluster.local:{{args.prometheus-port}}"
+          query: |-
+            sum(
+            sum_over_time(kube_pod_container_status_restarts_total{namespace="{{args.namespace}}",pod=~".*-{{args.canary-hash}}-.*"}[5m])
+            )
