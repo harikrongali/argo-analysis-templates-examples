@@ -9,6 +9,7 @@ spec:
     - name: canary-hash
     - name: prometheus-port
     - name: memory-utilization-limit-perc
+      value: "90"
     - name: initial-delay
       value: "1m"
     - name: count
